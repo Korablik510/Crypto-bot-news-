@@ -10,6 +10,8 @@ CHAT_ID = os.environ["CHAT_ID"]
 RSS_FEEDS = [
     "https://cointelegraph.com/rss",
     "https://coindesk.com/arc/outboundfeeds/rss/",
+    "https://cryptoslate.com/feed/",
+    "https://theblock.co/rss.xml",
 ]
 
 SENT_FILE = "sent_news.json"
@@ -35,13 +37,16 @@ def send_to_telegram(text):
 def check_news():
     sent = load_sent()
     for feed_url in RSS_FEEDS:
-        feed = feedparser.parse(feed_url)
-        for entry in feed.entries[:5]:
-            if entry.link not in sent:
-                msg = f"🔥 <b>{entry.title}</b>\n\n{entry.link}"
-                send_to_telegram(msg)
-                sent.append(entry.link)
-                time.sleep(2)
+        try:
+            feed = feedparser.parse(feed_url)
+            for entry in feed.entries[:3]:
+                if entry.link not in sent:
+                    msg = f"📊 <b>{entry.title}</b>\n\n🔗 {entry.link}"
+                    send_to_telegram(msg)
+                    sent.append(entry.link)
+                    time.sleep(2)
+        except Exception as e:
+            print(f"Помилка: {e}")
     save_sent(sent)
 
 while True:
