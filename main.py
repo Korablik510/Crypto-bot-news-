@@ -28,18 +28,23 @@ def save_sent(sent):
         json.dump(sent[-500:], f)
 
 def process_with_gemini(title):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
-    prompt = f"""Ты опытный крипто-трейдер который ведет Telegram канал. 
-Перепиши эту новость на русском языке в своем стиле: коротко, по делу, с эмоциями настоящего трейдера. 
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+        prompt = f"""Ты опытный крипто-трейдер который ведет Telegram канал.
+Перепиши эту новость на русском языке в своем стиле: коротко, по делу, с эмоциями настоящего трейдера.
 Добавь 1-2 эмодзи. Максимум 3-4 предложения. Без ссылки.
 
 Новость: {title}"""
 
-    response = requests.post(url, json={
-        "contents": [{"parts": [{"text": prompt}]}]
-    })
-    data = response.json()
-    return data["candidates"][0]["content"]["parts"][0]["text"]
+        response = requests.post(url, json={
+            "contents": [{"parts": [{"text": prompt}]}]
+        })
+        data = response.json()
+        print("Gemini response:", data)
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+    except Exception as e:
+        print(f"Gemini error: {e}")
+        return title
 
 def send_to_telegram(text):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
