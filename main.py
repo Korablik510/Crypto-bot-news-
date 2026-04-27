@@ -6,6 +6,7 @@ import os
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
+GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 
 RSS_FEEDS = [
     "https://cointelegraph.com/rss",
@@ -26,6 +27,20 @@ def save_sent(sent):
     with open(SENT_FILE, "w") as f:
         json.dump(sent[-500:], f)
 
+def process_with_gemini(title):
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+    prompt = f"""Ты опытный крипто-трейдер который ведет Telegram канал. 
+Перепиши эту новость на русском языке в своем стиле: коротко, по делу, с эмоциями настоящего трейдера. 
+Добавь 1-2 эмодзи. Максимум 3-4 предложения. Без ссылки.
+
+Новость: {title}"""
+
+    response = requests.post(url, json={
+        "contents": [{"parts": [{"text": prompt}]}]
+    })
+    data = response.json()
+    return data["candidates"][0]["content"]["parts"][0]["text"]
+
 def send_to_telegram(text):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     requests.post(url, json={
@@ -41,10 +56,11 @@ def check_news():
             feed = feedparser.parse(feed_url)
             for entry in feed.entries[:3]:
                 if entry.link not in sent:
-                    msg = f"📊 <b>{entry.title}</b>\n\n🔗 {entry.link}"
+                    processed = process_with_gemini(entry.title)
+                    msg = f"{processed}\n\n🔗 {entry.link}"
                     send_to_telegram(msg)
                     sent.append(entry.link)
-                    time.sleep(2)
+                    time.sleep(3)
         except Exception as e:
             print(f"Помилка: {e}")
     save_sent(sent)
