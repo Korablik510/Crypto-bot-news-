@@ -1,6 +1,3 @@
-Бачу новий код! Але проблема в тому що тут знову gemini-1.5-flash і токени вписані прямо в код ("ТВІЙ_ТЕЛЕГРАМ_БОТ_ТОКЕН") — це небезпечно бо репозиторій публічний!
-Давай зробимо правильно — встав цей код але з виправленнями:
-
 import feedparser
 import requests
 import time
@@ -34,7 +31,7 @@ def save_sent(sent):
 
 def process_with_gemini(title):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
-    prompt = f"Ты опытный крипто-трейдер. Переведи и перескажи новость на русском языке кратко (2-3 предложения) с эмодзи: {title}"
+    prompt = f"Ty opytnyy krypto-treyyder. Perevedyi ta pereskazy novynu rosiyskoyu movoyu korotko (2-3 rechennya) z emoji: {title}"
     try:
         response = requests.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=15)
         data = response.json()
@@ -51,7 +48,7 @@ def send_to_telegram(text, link):
     try:
         res = requests.post(url, json={
             "chat_id": CHAT_ID,
-            "text": f"{text}\n\n🔗 <a href='{link}'>Читать полностью</a>",
+            "text": f"{text}\n\n<a href='{link}'>Читать полностью</a>",
             "parse_mode": "HTML"
         })
         return res.status_code == 200
@@ -61,7 +58,6 @@ def send_to_telegram(text, link):
 
 def check_news():
     sent = load_sent()
-    print(f"Перевірка новин: {time.strftime('%H:%M:%S')}")
     for feed_url in RSS_FEEDS:
         try:
             feed = feedparser.parse(feed_url)
@@ -76,8 +72,6 @@ def check_news():
     save_sent(sent)
 
 if __name__ == "__main__":
-    print("Бот запущений!")
     while True:
         check_news()
-        print("Чекаю 10 хвилин...")
         time.sleep(600)
