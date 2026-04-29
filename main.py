@@ -49,7 +49,7 @@ def process_with_groq(title):
                 "Content-Type": "application/json"
             },
             json={
-                "model": "llama3-8b-8192",
+            "model": "llama-3.1-8b-instant"
                 "messages": [{
                     "role": "user",
                     "content": f"Ты опытный крипто-трейдер который ведет Telegram канал. Переведи и перескажи эту новость на русском языке кратко (2-3 предложения) с эмодзи в стиле трейдера. Без ссылок. Новость: {title}"
