@@ -17,7 +17,7 @@ RSS_FEEDS = [
 KEYWORDS = [
     "price", "market", "rally", "crash", "dump", "pump",
     "bitcoin", "btc", "ethereum", "eth", "sec", "etf",
-    "fed", "interest rate", "inflation", "liquidat", "ath",
+    "fed", "inflation", "liquidat", "ath",
     "bullish", "bearish", "whale", "volume", "trading"
 ]
 
@@ -45,14 +45,14 @@ def process_with_groq(title):
         response = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={
-                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Authorization": "Bearer " + GROQ_API_KEY,
                 "Content-Type": "application/json"
             },
             json={
-            "model": "llama-3.1-8b-instant"
+                "model": "llama-3.1-8b-instant",
                 "messages": [{
                     "role": "user",
-                    "content": f"Ты опытный крипто-трейдер который ведет Telegram канал. Переведи и перескажи эту новость на русском языке кратко (2-3 предложения) с эмодзи в стиле трейдера. Без ссылок. Новость: {title}"
+                    "content": "Ты опытный крипто-трейдер. Переведи и перескажи эту новость на русском языке кратко (2-3 предложения) с эмодзи. Без ссылок. Новость: " + title
                 }],
                 "max_tokens": 200
             },
@@ -61,20 +61,20 @@ def process_with_groq(title):
         data = response.json()
         return data["choices"][0]["message"]["content"].strip()
     except Exception as e:
-        print(f"Groq error: {e}")
+        print("Groq error: " + str(e))
         return title
 
 def send_to_telegram(text, link):
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    url = "https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage"
     try:
         res = requests.post(url, json={
             "chat_id": CHAT_ID,
-            "text": f"{text}\n\n<a href='{link}'>Читать полностью</a>",
+            "text": text + "\n\n<a href='" + link + "'>Читать полностью</a>",
             "parse_mode": "HTML"
         })
         return res.status_code == 200
     except Exception as e:
-        print(f"Telegram error: {e}")
+        print("Telegram error: " + str(e))
         return False
 
 def check_news():
@@ -92,7 +92,7 @@ def check_news():
                     else:
                         sent.append(entry.link)
         except Exception as e:
-            print(f"Feed error: {e}")
+            print("Feed error: " + str(e))
     save_sent(sent)
 
 if __name__ == "__main__":
