@@ -6,12 +6,19 @@ import os
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CHAT_ID = os.environ.get("CHAT_ID")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 RSS_FEEDS = [
     "https://cointelegraph.com/rss",
     "https://coindesk.com/arc/outboundfeeds/rss/",
     "https://cryptoslate.com/feed/",
+]
+
+KEYWORDS = [
+    "price", "market", "rally", "crash", "dump", "pump",
+    "bitcoin", "btc", "ethereum", "eth", "sec", "etf",
+    "fed", "interest rate", "inflation", "liquidat", "ath",
+    "bullish", "bearish", "whale", "volume", "trading"
 ]
 
 SENT_FILE = "sent_news.json"
@@ -29,18 +36,32 @@ def save_sent(sent):
     with open(SENT_FILE, "w") as f:
         json.dump(sent[-500:], f)
 
-def process_with_gemini(title):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
-    prompt = f"Ty opytnyy krypto-treyyder. Perevedyi ta pereskazy novynu rosiyskoyu movoyu korotko (2-3 rechennya) z emoji: {title}"
+def is_relevant(title):
+    title_lower = title.lower()
+    return any(keyword in title_lower for keyword in KEYWORDS)
+
+def process_with_groq(title):
     try:
-        response = requests.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=15)
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "llama3-8b-8192",
+                "messages": [{
+                    "role": "user",
+                    "content": f"Ты опытный крипто-трейдер который ведет Telegram канал. Переведи и перескажи эту новость на русском языке кратко (2-3 предложения) с эмодзи в стиле трейдера. Без ссылок. Новость: {title}"
+                }],
+                "max_tokens": 200
+            },
+            timeout=15
+        )
         data = response.json()
-        if "candidates" in data:
-            return data["candidates"][0]["content"]["parts"][0]["text"].strip()
-        print(f"Gemini error: {data}")
-        return title
+        return data["choices"][0]["message"]["content"].strip()
     except Exception as e:
-        print(f"Gemini error: {e}")
+        print(f"Groq error: {e}")
         return title
 
 def send_to_telegram(text, link):
@@ -61,12 +82,15 @@ def check_news():
     for feed_url in RSS_FEEDS:
         try:
             feed = feedparser.parse(feed_url)
-            for entry in feed.entries[:3]:
+            for entry in feed.entries[:5]:
                 if entry.link not in sent:
-                    processed = process_with_gemini(entry.title)
-                    if send_to_telegram(processed, entry.link):
+                    if is_relevant(entry.title):
+                        processed = process_with_groq(entry.title)
+                        if send_to_telegram(processed, entry.link):
+                            sent.append(entry.link)
+                            time.sleep(5)
+                    else:
                         sent.append(entry.link)
-                        time.sleep(5)
         except Exception as e:
             print(f"Feed error: {e}")
     save_sent(sent)
