@@ -69,7 +69,7 @@ def send_to_telegram(text, link):
     try:
         res = requests.post(url, json={
             "chat_id": CHAT_ID,
-            "text": text + "\n\n<a href='" + link + "'>Читать полностью</a>",
+            "text": text + "\n\n#новости\n\n<a href='" + link + "'>Читать полностью</a>",
             "parse_mode": "HTML"
         })
         return res.status_code == 200
