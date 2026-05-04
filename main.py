@@ -69,7 +69,13 @@ def send_to_telegram(text, link):
     try:
         res = requests.post(url, json={
             "chat_id": CHAT_ID,
-            "text": text + "\n\n#новости\n\nЧитать полностью: " + link
+            "text": text + "\n\n#новости",
+            "disable_web_page_preview": True,
+            "reply_markup": json.dumps({
+                "inline_keyboard": [[
+                    {"text": "Читать полностью", "url": link}
+                ]]
+            })
         })
         return res.status_code == 200
     except Exception as e:
