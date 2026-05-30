@@ -52,7 +52,8 @@ def process_with_groq(title):
                 "model": "llama-3.3-70b-versatile",
                 "messages": [{
                     "role": "user",
-                    "content": "Ты опытный крипто-трейдер который ведет популярный Telegram канал. Переведи и перескажи эту новость на русском языке. Требования: 2-3 предложения коротко и по делу. Пиши грамотно без ошибок. Добавь эмодзи по смыслу. Без ссылок и хештегов. Новость: " + title
+                    "content": "Ти досвідчений крипто-трейдер який веде популярний Telegram канал. Переклади та перекажи цю новину українською мовою. Вимоги: 2-3 речення коротко і по справі. Пиши грамотно без помилок. Додай 3-5 емодзі до змісту. Без посилань і хештегів. Новина: 
+" + title
                 }],
                 "max_tokens": 200
             },
@@ -69,11 +70,11 @@ def send_to_telegram(text, link):
     try:
         res = requests.post(url, json={
             "chat_id": CHAT_ID,
-            "text": text + "\n\n#новости",
+            "text": text + "\n\n#новини",
             "disable_web_page_preview": True,
             "reply_markup": json.dumps({
                 "inline_keyboard": [[
-                    {"text": "Читать полностью", "url": link}
+                    {"text": "Читати повністю", "url": link}
                 ]]
             })
         })
